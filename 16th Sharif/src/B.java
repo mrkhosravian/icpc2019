@@ -11,11 +11,11 @@ public class B {
         int n1 = s.nextInt();
         int n2 = s.nextInt();
 
-        solution(fingers, hands, n1, n2);
+        solution2(fingers * hands, n1 + n2);
 
    }
 
-   public static void solution(int fingers_per_hand, int hands, int n1, int n2) {
+   public static void solution1(int fingers_per_hand, int hands, int n1, int n2) {
 
         int n = n1 + n2;
         int fingers = fingers_per_hand * hands;
@@ -30,11 +30,17 @@ public class B {
 
    }
 
-   public static int recursiveSolution(int all_fingers, int sum) {
+   public static int recursiveSolution2(int all_fingers, int sum) {
 
         if(sum <= all_fingers) return sum;
 
-        return recursiveSolution(all_fingers, sum - all_fingers);
+        return recursiveSolution2(all_fingers, sum - all_fingers);
+
+   }
+
+   public static void solution2(int all_fingers, int sum) {
+
+       System.out.println(sum <= all_fingers ? sum : sum % all_fingers);
 
    }
 
