@@ -27,7 +27,7 @@ public class I {
 
         }
 
-        solution(members);
+        System.out.println(solution(members));
 
     }
 
@@ -35,9 +35,11 @@ public class I {
 
         int[][] matrix = boliMatrixGraphOfMembers(members);
 
+        int[][] check_matrix = matrix;
         int[][] current_matrix = powNBoliMatrix(matrix, 2);
 
-        for (int k = 3; k == 3; k++) { //in sharte ro nemidonam chi bashe :)
+
+        for (int k = 3; !areEqualMatrixes(check_matrix, current_matrix) ; k++) { //until longest way length between 2 non-equal points = until current_matrix is same as its past
 
             for (int i = 0; i < current_matrix.length; i++) {
 
@@ -49,17 +51,77 @@ public class I {
 
             }
 
+            check_matrix = current_matrix;
             current_matrix = powNBoliMatrix(matrix, k);
 
         }
 
+        // TODO: 5/9/2019 figure out a better algorithm for this part
         //give ads to least members that have all members as absolute followers
 
-        //find shakha
+        //algorithm 1 : check all possible ways dirtily
+        for (int i = 1; i <= members.length; i++) { //iterate over size of choices
 
-        var shaka = new ArrayList<Member>(1);
+            int[] choices = new int[i];
 
+            while(!Arrays.stream(choices).allMatch(choice -> choice == members.length - 1)) { //until all choices are choose
 
+                //check all choices; sum of their followers should contain all members
+
+                for (int j = 0; j < choices.length; j++) {
+
+                    var followers_sum = new HashSet<Integer>();
+
+                    for (int choice : choices) {
+
+                        followers_sum.addAll(members[choice].followers);
+
+                    }
+
+                    if (followers_sum.size() == members.length) return i;
+
+                }
+
+                //update choices
+                updateChoices(choices, members.length - 1);
+
+            }
+
+        }
+
+        return -1;
+
+    }
+
+    public static boolean areEqualMatrixes(int[][] first, int[][] second) {
+
+        if(first.length != second.length || first[0].length != second[0].length) return false;
+
+        for (int i = 0; i < first.length; i++) {
+
+            if(!Arrays.equals(first[i], second[i])) return false;
+
+        }
+
+        return true;
+
+    }
+
+    public static void updateChoices(int[] choices, int max) {
+
+        _updateChoices(choices, max, choices.length - 1);
+
+    }
+
+    public static void _updateChoices(int[] choices, int max, int end_index) {
+
+        if(choices[end_index]++ == max) {
+
+            //reset this then update root
+            choices[end_index] = 0;
+            _updateChoices(choices, max, end_index - 1);
+
+        }
 
     }
 
@@ -174,7 +236,7 @@ public class I {
 
             for (int j = 0; j < matrix[0].length; j++) {
 
-                System.out.print(matrix[i][j]);
+                System.out.print(matrix[i][j] + " ");
 
             }
 
