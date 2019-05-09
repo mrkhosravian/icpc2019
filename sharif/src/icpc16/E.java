@@ -53,7 +53,7 @@ public class E {
 
     public static boolean isLoser(int[][] matrix, int i, int j) {
 
-        ArrayList<Integer> neighbors = new ArrayList(4);
+        ArrayList<Integer> neighbors = new ArrayList<>(4);
 
         if(i != 0) neighbors.add(matrix[i-1][j]);
         if(j != 0) neighbors.add(matrix[i][j-1]);
