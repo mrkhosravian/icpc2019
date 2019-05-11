@@ -1,89 +1,173 @@
 package icpc16;
 
+import org.junit.jupiter.api.Test;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class I {
 
+    @Test
+    public void testMatrixes() {
+
+        Matrix m1 = new Matrix(new int[][]{{0, 1, 0}, {1, 3, 1}, {1, 2, 0}});
+        Matrix m2 = new Matrix(new int[][]{{1, 0, 0}, {1, 1, 1}, {1, 0, 1}});
+        Matrix m3 = new Matrix(new int[][]{{0, 1, 0}, {0, 1, 1}, {1, 1, 0}});
+
+        assertEquals(m1, Matrix.multiplyMatrixes(m2, m3));
+
+        assertEquals(m1, m1.clone());
+        assertEquals(m2, m2.clone());
+        assertEquals(m3, m3.clone());
+
+        assertEquals(new Matrix(new int[][]{{1, 0, 0}, {3, 1, 2}, {2, 0, 1}}), m2.toPowerN(2));
+
+    }
+
     public static void main(String[] args) {
 
+        //inputs
         var s = new Scanner(System.in);
 
         int n = s.nextInt();
         s.nextLine();
 
-        Member[] members = new Member[n];
+        KahoGramMember[] members = new KahoGramMember[n];
 
         for (int i = 0; i < n; i++) {
 
             int followers_count = s.nextInt();
 
-            members[i] = new Member(i+1);
+            members[i] = new KahoGramMember(i + 1);
 
             for (int j = 0; j < followers_count; j++) { //get id of followers
 
-                members[i].followers.add(s.nextInt());
+                members[i].addFollower(s.nextInt());
 
             }
 
         }
 
-        System.out.println(solution(members));
+        //avg time test
+
+        System.out.println(Utils.avgTimeResult(() -> leastNeededBitKalam(members), 5));
+
+        //avg time test
 
     }
 
-    public static int solution(Member[] members) {
+    public static int leastNeededBitKalam(KahoGramMember[] members) {
 
-        int[][] matrix = boliMatrixGraphOfMembers(members);
+        KahoGramMember[] members_copy = Arrays.copyOf(members, members.length); //to prevent changing real data; for avg time result
 
-        int[][] check_matrix = matrix;
-        int[][] current_matrix = powNBoliMatrix(matrix, 2);
+        final Matrix m = KahoGramMember.boolGraphMatrixOfMembers(members_copy);
 
+        Matrix pre_current, current = m;
 
-        for (int k = 3; !areEqualMatrixes(check_matrix, current_matrix) ; k++) { //until longest way length between 2 non-equal points = until current_matrix is same as its past
+        int power = 2;
+        do {
 
-            for (int i = 0; i < current_matrix.length; i++) {
+            pre_current = current;
+            current = m.clone().toPowerN(power++).translateIntoBoolMatrix();
 
-                for (int j = 0; j < current_matrix.length; j++) {
+            for (int i = 0; i < current.rows(); i++) {
 
-                    if(current_matrix[i][j] == 1) members[i].followers.add(j+1);
+                for (int j = 0; j < current.rows(); j++) {
+
+                    if (current.matrix[i][j] == 1) members_copy[i].addFollower(j + 1);
 
                 }
 
             }
 
-            check_matrix = current_matrix;
-            current_matrix = powNBoliMatrix(matrix, k);
+        } while (!current.equals(pre_current));
 
-        }
-
-        // TODO: 5/9/2019 figure out a better algorithm for this part
         //give ads to least members that have all members as absolute followers
+        //find the least chosen sets that contains all members
 
-        //algorithm 1 : check all possible ways dirtily
-        for (int i = 1; i <= members.length; i++) { //iterate over size of choices
+        Arrays.sort(members_copy, Comparator.comparingInt(o -> (o.getFollowers().size())));
 
-            int[] choices = new int[i];
+        //Algorithm 1 : checking all possible chosen sets from least size (1 set) to end (members.length sets)
 
-            while(!Arrays.stream(choices).allMatch(choice -> choice == members.length - 1)) { //until all choices are choose
+        var is_in = new boolean[members_copy.length];
 
-                //check all choices; sum of their followers should contain all members
+        var chosen_sets = new TreeSet<Integer>();
+        var sum_followers = new HashSet<Integer>(members_copy.length);
 
-                for (int j = 0; j < choices.length; j++) {
+        for (int i = 1; i <= members_copy.length; i++) { //iterates over number of chosen sets
 
-                    var followers_sum = new HashSet<Integer>();
+            for (int j = 0; j < Utils.Math.nCr(members_copy.length, i); j++) { //iterate over all possible ways of choosing i sets
 
-                    for (int choice : choices) {
+                //update is_in
+                if(chosen_sets.size() == 0) { //first time called on this i
 
-                        followers_sum.addAll(members[choice].followers);
+                    for (int k = is_in.length - 1; k >= is_in.length - i; k--) { //make true from end to end - i
+
+                        is_in[k] = true;
 
                     }
 
-                    if (followers_sum.size() == members.length) return i;
+                } else {
+
+                    new Consumer<Integer>() {
+
+                        @Override
+                        public void accept(Integer removes) {
+
+                            //try move the furthest T to left
+                            if(chosen_sets.first() > 0) {
+
+                                //remove furthest T
+                                is_in[chosen_sets.first()] = false;
+                                removes++;
+
+                                //add removed Ts to left of the past furthest T
+                                for (int k = chosen_sets.first() - 1; k >= chosen_sets.first() - removes; k--) {
+
+                                    is_in[k] = true;
+
+                                }
+
+                            } else {
+
+                                //remove furthest T
+                                is_in[chosen_sets.pollFirst()] = false; //won't be null; reached here cause it's not null
+                                accept(removes + 1);
+
+                            }
+
+                        }
+
+                    }.accept(0);
 
                 }
 
-                //update choices
-                updateChoices(choices, members.length - 1);
+                //add is_in to chosen sets and update sum_followers
+                chosen_sets.clear();
+                sum_followers.clear();
+
+                for (int k = 0; k < is_in.length; k++) {
+
+                    if(is_in[k]) {
+
+                        chosen_sets.add(k);
+                        sum_followers.addAll(members_copy[k].getFollowers());
+
+                    }
+
+                }
+
+                if(sum_followers.size() == members_copy.length) return i;
+
+            }
+
+            //reset is_in and chosen_sets
+            chosen_sets.clear();
+            for (int j = 0; j < is_in.length; j++) {
+
+                if(is_in[j]) is_in[j] = false;
 
             }
 
@@ -91,9 +175,228 @@ public class I {
 
         return -1;
 
+        /* Algorithm 2 : checking possible chosen sets randomly (not completely random)
+
+        var is_in = new Boolean[members_copy.length];
+        for (int i = 0; i < is_in.length; i++) is_in[i] = false;
+
+        int least_bitkalam = -1;
+
+        for (int p = 0; p < Math.pow(2, members_copy.length); p++) {
+
+            //update is in
+            new Consumer<Integer>() {
+
+                @Override
+                public void accept(Integer end_index) {
+
+                    if(end_index < 0) return;
+
+                    if(is_in[end_index]) {
+
+                        //reset then update the root
+                        is_in[end_index] = false;
+                        accept(end_index-1);
+
+                    } else is_in[end_index] = true;
+
+                }
+
+            }.accept(is_in.length - 1);
+
+            var sum_of_followers = new HashSet<Integer>();
+
+            for (int i = 0; i < is_in.length; i++) {
+
+                if (is_in[i]) sum_of_followers.addAll(members_copy[i].getFollowers());
+
+            }
+
+            if (sum_of_followers.size() == members_copy.length) {
+
+                int count = Math.toIntExact(Arrays.stream(is_in).filter(b -> b).count());
+
+                if (least_bitkalam == -1 || count < least_bitkalam) least_bitkalam = count;
+
+            }
+
+        }
+
+        return least_bitkalam;
+
+        */
+
     }
 
-    public static boolean areEqualMatrixes(int[][] first, int[][] second) {
+}
+
+class Matrix {
+
+    public int[][] matrix;
+
+    public Matrix(int[][] matrix) {
+
+        this.matrix = matrix;
+
+        //checkLengths();
+
+    }
+
+    public Matrix(int rows, int columns) {
+
+        matrix = new int[rows][columns];
+
+    }
+
+    public Matrix(Collection<int[]> matrix) {
+
+        this.matrix = new int[matrix.size()][((int[]) matrix.toArray()[0]).length];
+
+        AtomicInteger i = new AtomicInteger(0);
+        matrix.forEach(ints -> this.matrix[i.getAndIncrement()] = ints);
+
+        //checkLengths();
+
+    }
+
+    protected void checkLengths() throws Exception {
+
+        if(!Arrays.stream(matrix).skip(1).allMatch(ints -> ints.length == matrix[0].length)) throw new Exception("Not a matrix");
+
+    }
+
+    public Matrix print(String separator) {
+
+        for (int i = 0; i < matrix.length; i++) {
+
+            for (int j = 0; j < matrix[0].length; j++) {
+
+                System.out.print(matrix[i][j] + separator);
+
+            }
+
+            System.out.println();
+
+        }
+        System.out.println();
+
+        return this;
+
+    }
+
+    public Matrix print() {
+
+        print("\t");
+
+        return this;
+
+    }
+
+    public int rows() {
+
+        return matrix.length;
+
+    }
+
+    public int columns() {
+
+        return matrix[0].length;
+
+    }
+
+    public Matrix multiplyTo(Matrix m) {
+
+        this.matrix = multiplyMatrixes(matrix, m.matrix);
+
+        return this;
+
+    }
+
+    public static Matrix multiplyMatrixes(Matrix first, Matrix second) {
+
+        return new Matrix(multiplyMatrixes(first.matrix, second.matrix));
+
+    }
+
+    private static int[][] multiplyMatrixes(int[][] first, int[][] second) {
+
+        if(first[0].length != second.length) return null; //throw new Exception("Can't perform multiplying on this matrixes");
+
+        int[][] product = new int[first.length][second[0].length];
+
+        for (int i = 0; i < first.length; i++) { //iterates over rows of first matrix
+
+            for (int j = 0; j < second[0].length; j++) { //iterates over columns of second matrix
+
+                for (int k = 0; k < first.length; k++) { //iterates for multiplying matching indexes
+
+                    product[i][j] += first[i][k] * second[k][j];
+
+                }
+
+            }
+
+        }
+
+        return product;
+
+    }
+
+    public Matrix translateIntoBoolMatrix() {
+
+        for (int i = 0; i < rows(); i++) {
+
+            for (int j = 0; j < columns(); j++) {
+
+                matrix[i][j] = matrix[i][j] != 0 ? 1 : 0;
+
+            }
+
+        }
+
+        return this;
+
+    }
+
+    public Matrix toPowerN(int n) {
+
+        //if(n <= 0) throw new Exception("Can't power the matrix to n <= 0");
+
+        if(n == 1) return this;
+
+        final int[][] copy = copyMatrix(matrix);
+
+        for (int i = 1; i < n; i++) {
+
+            matrix = multiplyMatrixes(matrix, copy);
+
+        }
+
+        return this;
+
+    }
+
+    public Matrix clone() {
+
+        return new Matrix(copyMatrix(matrix));
+
+    }
+
+    private static int[][] copyMatrix(int[][] original) {
+
+        int[][] copy = new int[original.length][original[0].length];
+
+        for (int i = 0; i < copy.length; i++) {
+
+            copy[i] = Arrays.copyOf(original[i], original[i].length);
+
+        }
+
+        return copy;
+
+    }
+
+    private static boolean areEqualMatrixes(int[][] first, int[][] second) {
 
         if(first.length != second.length || first[0].length != second[0].length) return false;
 
@@ -107,164 +410,108 @@ public class I {
 
     }
 
-    public static void updateChoices(int[] choices, int max) {
+    @Override
+    public boolean equals(Object o) {
 
-        _updateChoices(choices, max, choices.length - 1);
+        if (this == o) return true;
 
+        if (!(o instanceof Matrix)) return false;
+
+        return areEqualMatrixes(matrix, ((Matrix) o).matrix);
     }
 
-    public static void _updateChoices(int[] choices, int max, int end_index) {
-
-        if(choices[end_index]++ == max) {
-
-            //reset this then update root
-            choices[end_index] = 0;
-            _updateChoices(choices, max, end_index - 1);
-
-        }
-
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(matrix);
     }
-
-    public static int[][] boliMatrixGraphOfMembers(Member[] members) {
-
-        int[][] matrix = new int[members.length][members.length];
-
-        for (Member member : members) {
-
-            member.followers.forEach(id -> matrix[member.id-1][id-1] = 1);
-
-        }
-
-        return matrix;
-
-    }
-
-    public static int[][] powNBoliMatrix(int[][] matrix, int n) {
-
-        int[][] result = powNMatrix(matrix, n);
-
-        makeMatrixBoli(result);
-
-        return result;
-
-    }
-
-    public static boolean contains1ExceptMainDiameter(int[][] matrix) {
-
-        for (int i = 0; i < matrix.length; i++) {
-
-            for (int j = 0; j < matrix.length; j++) {
-
-                if(i == j) continue;
-
-                if(matrix[i][j] == 1) return true;
-
-            }
-
-        }
-
-        return false;
-
-    }
-
-    public static int[][] copy2DSquareMatrix(int[][] original) {
-
-        int[][] new_matrix = new int[original.length][original.length];
-
-        for (int i = 0; i < original.length; i++) {
-
-            System.arraycopy(original[i], 0, new_matrix[i], 0, original.length);
-
-        }
-
-        return new_matrix;
-
-    }
-
-    public static int[][] powNMatrix(int[][] matrix, int n) {
-
-        int[][] result = multiplyMatrixes(matrix, matrix);
-
-        for (int i = 1; i < n - 1; i++) {
-
-            result = multiplyMatrixes(result, matrix);
-
-        }
-
-        return result;
-    }
-
-    public static void makeMatrixBoli(int[][] matrix) {
-
-        for (int i = 0; i < matrix.length; i++) {
-
-            for (int j = 0; j < matrix[0].length; j++) {
-
-                if(matrix[i][j] != 0) matrix[i][j] = 1;
-                else matrix[i][j] = 0;
-
-            }
-
-        }
-
-    }
-
-    public static int[][] multiplyMatrixes(int[][] first, int[][] second) {
-
-        int[][] product = new int[first.length][second[0].length];
-
-        for(int i = 0; i < first.length; i++) {
-
-            for (int j = 0; j < second[0].length; j++) {
-
-                for (int k = 0; k < second.length; k++) {
-
-                    product[i][j] += first[i][k] * second[k][j];
-
-                }
-
-            }
-
-        }
-
-        return product;
-    }
-
-    public static void printMatrix(int[][] matrix) {
-
-        for (int i = 0; i < matrix.length; i++) {
-
-            for (int j = 0; j < matrix[0].length; j++) {
-
-                System.out.print(matrix[i][j] + " ");
-
-            }
-
-            System.out.println();
-
-        }
-
-    }
-
 }
 
-class Member {
+class KahoGramMember {
 
-    Set<Integer> followers;
-    int id;
+    private final Set<Integer> followers;
+    private final int id;
 
-    public Member(int id, Integer... followers) {
+    public KahoGramMember(int id) {
 
-        this.followers = new HashSet<>(Arrays.asList(followers));
-        this.followers.add(id);
         this.id = id;
+
+        followers = new HashSet<>();
+        followers.add(id);
+
+    }
+
+    public KahoGramMember(int id, int... followers) {
+
+        this.id = id;
+
+        this.followers = new HashSet<>();
+
+        addFollowers(followers);
+        this.followers.add(id);
+
+    }
+
+    public KahoGramMember(int id, Collection<Integer> followers) {
+
+        this.id = id;
+        followers.add(id);
+        this.followers = new HashSet<>(followers);
+
+    }
+
+    public int getId() {
+
+        return id;
+
+    }
+
+    public void addFollower(int id) {
+
+        followers.add(id);
+
+    }
+
+    public void addFollowers(int... ids) {
+
+        var ids_wrapper = new Integer[ids.length];
+
+        for (int i = 0; i < ids.length; i++) {
+
+            ids_wrapper[i] = ids[i];
+
+        }
+
+        followers.addAll(Arrays.asList(ids_wrapper));
+
+    }
+
+    public void addFollowers(Collection<Integer> followers) {
+
+        this.followers.addAll(followers);
+
+    }
+
+    public Set<Integer> getFollowers() {
+
+        return followers;
+
+    }
+
+    public static Matrix boolGraphMatrixOfMembers(KahoGramMember[] members) {
+
+        Matrix product = new Matrix(members.length, members.length);
+
+        Arrays.stream(members).forEach(member -> member.getFollowers().forEach(follower -> product.matrix[member.id - 1][follower - 1] = 1));
+
+        return product;
 
     }
 
     @Override
     public String toString() {
 
-        return id + " : " + Arrays.toString(followers.toArray());
+        return "#"+ id + " -> " + Arrays.toString(followers.toArray());
 
     }
+
 }
