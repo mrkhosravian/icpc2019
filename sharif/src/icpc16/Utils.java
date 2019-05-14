@@ -28,7 +28,7 @@ public class Utils {
     }
 
     /**
-     * Make sure c input values won't change during the function call
+     * Make sure c data values won't change during the function call
      * Avoid increasing calls parameter too much! causes unreal time result due to cache to CPU
      */
     public static <T> TimeResult<T> avgTimeResult(Callable<T> c, final int calls) {
@@ -92,7 +92,15 @@ public class Utils {
 
         public static int nCr(int n, int r) {
 
-            return fact(n) / (fact(n - r) * fact(r));
+            int a = 1;
+
+            for (int i = n; i > n - a; i--) {
+
+                a *= i;
+
+            }
+
+            return a / fact(a);
 
         }
 
