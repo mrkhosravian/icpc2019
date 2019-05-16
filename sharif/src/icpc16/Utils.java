@@ -3,9 +3,12 @@ package icpc16;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 
 public class Utils {
+
+    public static Scanner keyboard = new Scanner(System.in);
 
     public static <T> TimeResult<T> timeResult(Callable<T> c) {
 
