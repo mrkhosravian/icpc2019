@@ -69,7 +69,7 @@ public class I {
 
         }
 
-        return (int) Arrays.stream(members).filter(m -> m.mark == Mark.M).count();
+        return (int) Arrays.stream(members).filter(m -> m.mark == Mark.Master).count();
 
     }
 
@@ -78,13 +78,13 @@ public class I {
     private void markEm(KahoGramMember startMember) {
 
         calledIds.clear();
-        startMember.mark = Mark.M;
+        startMember.mark = Mark.Master;
         calledIds.add(startMember.id);
 
         for (int fId : startMember.followers) {
 
             KahoGramMember follower = getMember(fId);
-            follower.mark = Mark.CM;
+            follower.mark = Mark.ConnecetedToMaster;
             toCheck.push(follower);
 
         }
@@ -98,7 +98,7 @@ public class I {
                 if(calledIds.contains(fId)) continue;
 
                 KahoGramMember follower = getMember(fId);
-                follower.mark = Mark.CM;
+                follower.mark = Mark.ConnecetedToMaster;
                 calledIds.add(fId);
                 toCheck.push(follower);
 
@@ -112,7 +112,7 @@ public class I {
 
         for (KahoGramMember m : members) {
 
-            if(m.mark == Mark.NM) return m;
+            if(m.mark == Mark.NotMarked) return m;
 
         }
 
@@ -152,7 +152,7 @@ class KahoGramMember {
 
     public final int id;
     public final int[] followers;
-    public Mark mark = Mark.NM;
+    public Mark mark = Mark.NotMarked;
 
     public KahoGramMember(int id, int[] followers) {
 
@@ -165,6 +165,6 @@ class KahoGramMember {
 
 enum Mark {
 
-    CM, M, NM
+    ConnecetedToMaster, Master, NotMarked
 
 }

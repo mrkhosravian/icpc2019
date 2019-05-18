@@ -58,3 +58,12 @@ icpc2019
         <td> running online constests
         <td> http://coj.uci.cu/contest/running.xhtml
 </table>  
+
+<h2>Formulas</h2>
+<table>
+    <tr> 
+    <td>Pascal Triangle element
+    <td> <pre>c = c * (line - i) / i</pre> </td>
+    </tr>
+        
+</table>
