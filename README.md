@@ -7,8 +7,34 @@ icpc2019
     <tr>
         <td> algorithms learned
         <td> 0
-</table>      
-    
+</table>
+
+<h2> Time Table </h2>
+<table>
+    <thead>
+        <td><b>week day</b></td>
+        <td><b>time range</b></td>
+    <thead>
+    <tbody>
+        <tr>
+            <td>saturday</td>
+            <td>12 - 4</td>
+        <tr>
+        <tr>
+            <td>sunday</td>
+            <td>12 - 2</td>
+        <tr>
+        <tr>
+            <td>monday</td>
+            <td>12 - 2</td>
+        <tr>
+        <tr>
+            <td>thueseday</td>
+            <td>12 - 2</td>
+        <tr>
+    </tbody>
+</table>
+<p>optimal total hours: 10h</p>
 
 <h2>TODO</h2>
 <ul>
@@ -16,7 +42,7 @@ icpc2019
 <li>16th Sharif, Problem I -> Find best algorithm for the last part of solve (least chosen sets that contains all members)</li>
 </ul>
 
-<h3> Problems
+<h3> Problems </h3>
 <table>
     <tr>
         <td> phere online judge
@@ -26,7 +52,7 @@ icpc2019
             <td> https://uva.onlinejudge.org/index.php?option=com_onlinejudge&Itemid=8
 </table>  
 
-<h3> Contests
+<h3> Contests </h3>
 <table>
     <tr>
         <td> running online constests
