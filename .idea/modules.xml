@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/exercise/exercise.iml" filepath="$PROJECT_DIR$/exercise/exercise.iml" />
+      <module fileurl="file://$PROJECT_DIR$/quera/quera.iml" filepath="$PROJECT_DIR$/quera/quera.iml" />
+      <module fileurl="file://$PROJECT_DIR$/sharif/sharif.iml" filepath="$PROJECT_DIR$/sharif/sharif.iml" />
+    </modules>
+  </component>
+</project>
