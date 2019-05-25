@@ -37,10 +37,11 @@ icpc2019
 <p>optimal total hours: 10h</p>
 
 <h2>TODO</h2>
-<ul>
-<li>16th Sharif, Problem C -> Finding divisions fastest way</li>
-<li>16th Sharif, Problem I -> Find best algorithm for the last part of solve (least chosen sets that contains all members)</li>
-<li>Primes, BitWiseSieve algorithm -> Learn how to use bits as storage; change and retrieve bits. may become handy :)</li>
+    <ul>
+    <li>16th Sharif, Problem C -> Finding divisions fastest way</li>
+    <li>Least chosen sets that contains all members algorithm</li>
+    <li>Primes, BitWiseSieve algorithm -> Learn how to use bits as storage; change and retrieve bits. may become handy :)</li>
+    <li>Community detection algorithms e.g. infoMap</li>
 </ul>
 
 <h3> Problems </h3>
@@ -63,12 +64,15 @@ icpc2019
 <h2>Formulas</h2>
 <table>
     <tr> 
-    <td>Pascal Triangle element
-    <td> <pre>c = c * (line - i) / i</pre> </td>
+        <td>Pascal Triangle element
+        <td> <pre>c = c * (line - i) / i</pre> </td>
     </tr>
     <tr> 
-    <td>Big mod
-    <td> <pre>(A*B*C) mod N == ((A mod N) * (B mod N) * (C mod N)) mod N</pre> </td>
+        <td>Big mod
+        <td> <pre>(A*B*C) mod N == ((A mod N) * (B mod N) * (C mod N)) mod N</pre> </td>
     </tr>
-        
+    <tr> 
+        <td>Primes
+        <td> <pre>Fermat's Theorm</pre> </td>
+    </tr>
 </table>
